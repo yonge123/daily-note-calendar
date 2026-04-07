@@ -1,0 +1,151 @@
+{
+	"name": "daily-note-calendar",
+	"displayName": "Daily Note Calendar",
+	"description": "A calendar sidebar for creating and navigating daily notes.",
+	"version": "1.0.1",
+  	"publisher": "bluebird1111",
+	"icon": "resources/icon.png",
+	"repository": {
+		"type": "git",
+		"url": " https://github.com/yonge123/daily-note-calendar"
+	},
+	"engines": {
+		"vscode": "^1.74.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [],
+	"main": "./out/extension.js",
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "dailyNoteCalendarContainer",
+					"title": "Daily Note Calendar",
+					"icon": "resources/calendar.svg"
+				}
+			]
+		},
+		"views": {
+			"dailyNoteCalendarContainer": [
+				{
+					"type": "webview",
+					"id": "dailyNoteCalendar.calendarView",
+					"name": ""
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "dailyNoteCalendar.openTodayNote",
+				"title": "Calendar: Open Today's Daily Note"
+			},
+			{
+				"command": "dailyNoteCalendar.revealActiveNote",
+				"title": "Calendar: Reveal Active Note on Calendar"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "dailyNoteCalendar.openTodayNote",
+				"key": "ctrl+alt+d",
+				"mac": "cmd+alt+d"
+			}
+		],
+		"configuration": {
+			"title": "Daily Note Calendar",
+			"properties": {
+				"dailyNoteCalendar.dateFormat": {
+					"type": "string",
+					"default": "YYYY-MM-DD",
+					"description": "Date format for daily note filenames."
+				},
+				"dailyNoteCalendar.notesFolder": {
+					"type": "string",
+					"default": "daily-notes",
+					"description": "Folder where daily notes are stored (relative to workspace root)."
+				},
+				"dailyNoteCalendar.noteExtension": {
+					"type": "string",
+					"default": ".md",
+					"enum": [
+						".md",
+						".txt",
+						".org"
+					],
+					"description": "File extension for daily notes."
+				},
+				"dailyNoteCalendar.templatePath": {
+					"type": "string",
+					"default": "",
+					"description": "Path to a template file for new daily notes."
+				},
+				"dailyNoteCalendar.startWeekOn": {
+					"type": "string",
+					"default": "monday",
+					"enum": [
+						"monday",
+						"sunday"
+					],
+					"description": "First day of the week."
+				},
+				"dailyNoteCalendar.wordsPerDot": {
+					"type": "number",
+					"default": 250,
+					"description": "Words per dot. Set to 0 to disable."
+				},
+				"dailyNoteCalendar.showWeekNumbers": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show ISO week numbers."
+				},
+				"dailyNoteCalendar.confirmBeforeCreate": {
+					"type": "boolean",
+					"default": true,
+					"description": "Confirm before creating a new daily note."
+				},
+				"dailyNoteCalendar.colorMonth": {
+					"type": "string",
+					"default": "",
+					"description": "Color for the month name in the calendar header (e.g. #569cd6 or cornflowerblue)."
+				},
+				"dailyNoteCalendar.colorYear": {
+					"type": "string",
+					"default": "",
+					"description": "Color for the year number in the calendar header."
+				},
+				"dailyNoteCalendar.colorWeekNumber": {
+					"type": "string",
+					"default": "",
+					"description": "Color for the week numbers column."
+				},
+				"dailyNoteCalendar.colorDate": {
+					"type": "string",
+					"default": "",
+					"description": "Color for the day numbers in the calendar grid."
+				},
+				"dailyNoteCalendar.fontFamily": {
+					"type": "string",
+					"default": "",
+					"description": "Font family for the calendar (e.g. 'Georgia' or 'monospace')."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./"
+	},
+	"devDependencies": {
+		"@types/node": "^18.0.0",
+		"@types/vscode": "^1.74.0",
+		"typescript": "^5.0.0"
+	},
+	"__metadata": {
+		"installedTimestamp": 1774241054515,
+		"targetPlatform": "undefined",
+		"size": 59671
+	}
+}

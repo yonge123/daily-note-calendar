@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+  --c-bg: transparent;
+  --c-weekend-bg: rgba(128,128,128,0.04);
+  --c-dot: #cfbd6e;
+  --c-arrow: #888;
+  --c-title: #ccc;
+  --c-heading: #888;
+  --c-day: #ccc;
+  --c-today: #e44e49d3;
+  --c-weeknum: #888;
+  --c-muted: rgba(128,128,128,0.5);
+  --c-hover: #5681d3d3;
+  --c-active: rgba(128,128,128,0.2);
+  --c-note: #e0e0e0;
+  --c-border: rgba(128,128,128,0.15);
+  --c-tip-bg: #252526;
+  --c-tip-fg: #ccc;
+  --c-today-bg: #d85550ce;
+  --c-tip-border: #454545;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+  font-size: 12px;
+  color: var(--c-day);
+  background: var(--c-bg);
+  user-select: none;
+  padding: 8px 4px;
+  overflow-x: hidden;
+}
+
+/* Header */
+.hdr { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 10px 6px; }
+.hdr-title {
+  font-size: 16px; font-weight: 600; color: var(--c-title);
+  letter-spacing: 0.02em; cursor: pointer; padding: 2px 6px;
+  border-radius: 4px; transition: background 0.15s; background: none; border: none;
+}
+.hdr-title:hover { background: var(--c-hover); }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav-btn {
+  background: none; border: none; color: var(--c-arrow); cursor: pointer;
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; transition: background 0.15s, color 0.15s; font-size: 16px; line-height: 1;
+}
+.nav-btn:hover { background: var(--c-hover); color: var(--c-title); }
+.nav-btn.today {
+  font-size: 10px; font-weight: 600; width: auto; padding: 0 7px;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+/* Grid */
+.grid { display: grid; gap: 0; }
+.grid.wk { grid-template-columns: 28px repeat(7, 1fr); }
+.grid.no-wk { grid-template-columns: repeat(7, 1fr); }
+
+.dow {
+  font-size: 10px; font-weight: 500; color: var(--c-heading); text-align: center;
+  padding: 4px 0 6px; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.wk-hdr {
+  font-size: 9px; font-weight: 500; color: var(--c-weeknum); text-align: center;
+  padding: 4px 0 6px; letter-spacing: 0.04em;
+}
+
+/* Day cell */
+.day {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  justify-content: flex-start; padding: 3px 0 5px; cursor: pointer; border-radius: 5px;
+  transition: background 0.15s; min-height: 36px; outline: none;
+}
+.day:hover, .day:focus-visible { background: var(--c-hover); }
+.day:active { background: var(--c-active); }
+.day.out { opacity: 0.3; }
+.day.we { background: var(--c-weekend-bg); }
+.day.we:hover, .day.we:focus-visible { background: var(--c-hover); }
+
+.day-n {
+  font-size: 16px; line-height: 1; font-weight: 400; font-variant-numeric: tabular-nums;
+  color: var(--c-date-lbl, var(--c-day));
+}
+.day.has .day-n { color: var(--c-note); font-weight: 600; }
+.day.td .day-n {
+  background: var(--c-today-bg); color: #fff !important;
+  width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-weight: 700;
+}
+
+/* Dots */
+.dots { display: flex; gap: 2px; margin-top: 2px; height: 5px; align-items: center; }
+.dot { width: 4px; height: 4px; border-radius: 50%; background: var(--c-dot); opacity: 1; }
+.dot.hl { background: transparent; border: 1px solid var(--c-dot); opacity: 1; }
+.day:hover .dot { opacity: 1; }
+
+/* Week number */
+.month-lbl { color: var(--c-month-lbl, var(--c-title)); }
+.year-lbl  { color: var(--c-year-lbl, var(--c-title)); }
+
+.wk-n {
+  font-size: 10px; color: var(--c-weeknum-lbl, var(--c-weeknum)); display: flex; align-items: center;
+  justify-content: center; min-height: 36px; font-variant-numeric: tabular-nums;
+  border-radius: 4px; transition: background 0.15s, color 0.15s;
+}
+.wk-n.click { cursor: pointer; }
+.wk-n.click:hover { background: var(--c-hover); color: var(--c-note); }
+
+/* Tooltip */
+.tip {
+  display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%); background: var(--c-tip-bg); color: var(--c-tip-fg);
+  border: 1px solid var(--c-tip-border); border-radius: 4px; padding: 4px 8px;
+  font-size: 11px; white-space: nowrap; z-index: 100; pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3); max-width: 260px;
+}
+.day:hover .tip { display: block; }
+
+/* Status bar */
+.status {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; padding: 8px 6px 2px; font-size: 10px; color: var(--c-muted);
+}
+.status-item { display: flex; align-items: center; gap: 4px; }
+.s-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--c-dot); opacity: 0.6; }
+.s-dot.hl { background: transparent; border: 1px solid var(--c-dot); }
+
+/* Loading */
+.loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px 0; color: var(--c-muted); font-size: 11px;
+}
+@keyframes sp { to { transform: rotate(360deg); } }
+.loading::before {
+  content: ''; width: 14px; height: 14px; border: 2px solid var(--c-border);
+  border-top-color: var(--c-note); border-radius: 50%; animation: sp 0.6s linear infinite;
+  margin-right: 8px;
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Loading calendar...</div></div>
+
+<script>
+(function () {
+  var api = acquireVsCodeApi();
+
+  function send(cmd, data) {
+    api.postMessage(Object.assign({ command: cmd }, data || {}));
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function applyColors(d) {
+    var el = document.getElementById('dyn-colors');
+    if (!el) { el = document.createElement('style'); el.id = 'dyn-colors'; document.head.appendChild(el); }
+    var c = d.colors || {};
+    var css = ':root{';
+    if (c.month) css += '--c-month-lbl:' + c.month + ';';
+    if (c.year) css += '--c-year-lbl:' + c.year + ';';
+    if (c.weekNumber) css += '--c-weeknum-lbl:' + c.weekNumber + ';';
+    if (c.date) css += '--c-date-lbl:' + c.date + ';';
+    css += '}';
+    if (c.font) css += 'body{font-family:' + c.font + ';}';
+    el.textContent = css;
+  }
+
+  function render(d) {
+    applyColors(d);
+    var html = '<div class="hdr">' +
+      '<button class="hdr-title" title="Go to today"><span class="month-lbl">' + esc(d.monthName) + '</span> <span class="year-lbl">' + esc(String(d.year)) + '</span></button>' +
+      '<div class="nav">' +
+        '<button class="nav-btn" data-nav="prev" title="Previous month">\u2039</button>' +
+        '<button class="nav-btn today" data-nav="today" title="Go to today">Today</button>' +
+        '<button class="nav-btn" data-nav="next" title="Next month">\u203A</button>' +
+      '</div></div>';
+
+    html += '<div class="grid ' + (d.showWeekNumbers ? "wk" : "no-wk") + '">';
+
+    if (d.showWeekNumbers) html += '<div class="wk-hdr">W</div>';
+    for (var i = 0; i < d.dayHeaders.length; i++) {
+      html += '<div class="dow">' + esc(d.dayHeaders[i]) + '</div>';
+    }
+
+    for (var w = 0; w < d.weeks.length; w++) {
+      var week = d.weeks[w];
+      if (d.showWeekNumbers) {
+        html += '<div class="wk-n' + (d.weeklyEnabled ? ' click" data-week="' + esc(week.weekDate) : '') +
+          '" title="Week ' + week.weekNum + '">' + week.weekNum + '</div>';
+      }
+      for (var di = 0; di < week.days.length; di++) {
+        var dd = week.days[di];
+        var cls = "day";
+        if (!dd.isCurrentMonth) cls += " out";
+        if (dd.isToday) cls += " td";
+        if (dd.isWeekend) cls += " we";
+        if (dd.hasNote) cls += " has";
+
+        html += '<div class="' + cls + '" tabindex="0" data-date="' + esc(dd.date) + '">';
+        html += '<span class="day-n">' + dd.day + '</span>';
+
+        if (dd.hasNote && (dd.dots > 0 || dd.hasOpenTasks)) {
+          html += '<div class="dots">';
+          for (var j = 0; j < dd.dots; j++) html += '<span class="dot"></span>';
+          if (dd.hasOpenTasks) html += '<span class="dot hl"></span>';
+          html += '</div>';
+        }
+
+        var tip = dd.date;
+        if (dd.hasNote) {
+          tip += " \u00B7 " + dd.wordCount + " words";
+          if (dd.hasOpenTasks) tip += " \u00B7 has tasks";
+        } else {
+          tip += " \u00B7 click to create";
+        }
+        html += '<div class="tip">' + esc(tip) + '</div></div>';
+      }
+    }
+    html += '</div>';
+
+    html += '<div class="status">' +
+      '<span class="status-item"><span class="s-dot"></span> = ' + (d.wordsPerDot || 250) + ' words</span>' +
+      '<span class="status-item"><span class="s-dot hl"></span> = open tasks</span>' +
+      '</div>';
+
+    var root = document.getElementById("app");
+    root.innerHTML = html;
+
+    // Single delegated listener for all clicks
+    root.onclick = function (e) {
+      var nav = e.target.closest("[data-nav]");
+      if (nav) { send("navigate", { direction: nav.getAttribute("data-nav") }); return; }
+      var day = e.target.closest(".day");
+      if (day) { send("openDailyNote", { date: day.getAttribute("data-date"), split: e.ctrlKey || e.metaKey }); return; }
+      var wk = e.target.closest(".wk-n.click");
+      if (wk) { send("openWeeklyNote", { date: wk.getAttribute("data-week") }); }
+    };
+
+    // Single delegated listener for keyboard
+    root.onkeydown = function (e) {
+      var day = e.target.closest(".day");
+      if (!day) return;
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        send("openDailyNote", { date: day.getAttribute("data-date") });
+        return;
+      }
+      var cells = root.querySelectorAll(".day");
+      var arr = Array.prototype.slice.call(cells);
+      var idx = arr.indexOf(day);
+      if (idx === -1) return;
+      var t = -1;
+      if (e.key === "ArrowRight") t = idx + 1;
+      else if (e.key === "ArrowLeft") t = idx - 1;
+      else if (e.key === "ArrowDown") t = idx + 7;
+      else if (e.key === "ArrowUp") t = idx - 7;
+      else return;
+      if (t >= 0 && t < arr.length) { e.preventDefault(); arr[t].focus(); }
+    };
+  }
+
+  window.addEventListener("message", function (e) {
+    if (e.data.command === "update") render(e.data);
+  });
+
+  send("ready");
+})();
+</script>
+</body>
+</html>
